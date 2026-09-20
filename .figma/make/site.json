@@ -1,0 +1,10 @@
+{
+  "description": "This web app allows users to easily copy and paste UI elements, streamlining the design process for non-English speakers and enhancing productivity.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
