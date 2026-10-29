@@ -1,3 +1,6 @@
+import { Check, Copy } from "lucide-react"
+import Button from "@/shared/components/ui/button"
+import { cn } from "@/shared/lib/utils"
 import type { Term } from "../types"
 
 type Props = {
@@ -8,16 +11,31 @@ type Props = {
 
 export default function TermCard({ term, copied, onCopy }: Props) {
   return (
-    <button
+    <Button
+      variant="outline"
       onClick={onCopy}
-      aria-label={`${term.en} 복사${copied ? " 완료" : ""}`}
-      className="group cursor-pointer rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-left transition-all duration-100 hover:border-gray-300 hover:bg-white"
+      aria-label={term.en + " 복사" + (copied ? " 완료" : "")}
+      className={cn(
+        "group h-auto min-h-24 w-full justify-between gap-3 whitespace-normal rounded-xl border-border px-5 py-4 text-left hover:border-ring/50",
+        copied && "border-primary bg-accent text-accent-foreground",
+      )}
     >
-      <p className="flex items-center gap-1.5 font-mono text-base font-semibold leading-tight text-gray-900">
-        {term.en}
-        {copied && <span className="text-sm font-normal text-gray-400">✓</span>}
-      </p>
-      <p className="mt-1 text-sm leading-tight text-gray-400">{term.ko}</p>
-    </button>
+      <span className="min-w-0">
+        <span className="block break-words text-sm font-medium">
+          {term.en}
+        </span>
+        <span className="mt-1.5 block text-xs font-normal leading-relaxed text-muted-foreground">
+          {term.ko}
+        </span>
+      </span>
+      {copied ? (
+        <Check className="text-success" aria-hidden="true" />
+      ) : (
+        <Copy
+          className="text-muted-foreground/50 transition-colors group-hover:text-primary group-focus-visible:text-primary"
+          aria-hidden="true"
+        />
+      )}
+    </Button>
   )
 }

@@ -5,7 +5,7 @@ export const tools = [
   { id: "glossary", label: "UI 용어 사전", component: GlossaryPage },
   {
     id: "four-multiple",
-    label: "4의 배수 복사 & 계산기",
+    label: "4의 배수 툴",
     component: FourMultipleSnapTool,
   },
 ] as const

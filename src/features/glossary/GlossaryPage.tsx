@@ -1,125 +1,180 @@
-import TermCard from "./components/TermCard"
-import { useState } from "react"
-import { categories } from "./data/categories"
+import { useRef, useState } from "react"
+import { Search, X } from "lucide-react"
+import PageHeader from "@/shared/components/PageHeader"
+import Button from "@/shared/components/ui/button"
+import Card from "@/shared/components/ui/card"
+import Input from "@/shared/components/ui/input"
+import Separator from "@/shared/components/ui/separator"
 import useClipboard from "@/shared/hooks/useClipboard"
+import TermCard from "./components/TermCard"
+import { categories } from "./data/categories"
 
 export default function GlossaryPage() {
-  const { copied, error, copy: handleCopy } = useClipboard()
+  const { copied, copy } = useClipboard()
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [search, setSearch] = useState("")
+  const searchInput = useRef<HTMLInputElement>(null)
+  const query = search.trim().toLowerCase()
 
-  const filtered = search.trim()
-    ? categories
-        .map((cat) => ({
-          ...cat,
-          terms: cat.terms.filter(
-            (t) =>
-              t.en.toLowerCase().includes(search.trim().toLowerCase()) ||
-              t.ko.includes(search.trim()),
-          ),
-        }))
-        .filter((c) => c.terms.length > 0)
-    : activeCategory
-      ? categories.filter((c) => c.id === activeCategory)
-      : categories
+  const filtered = categories
+    .filter((category) => !activeCategory || category.id === activeCategory)
+    .map((category) => ({
+      ...category,
+      terms: category.terms.filter(
+        (term) =>
+          !query ||
+          term.en.toLowerCase().includes(query) ||
+          term.ko.includes(query),
+      ),
+    }))
+    .filter((category) => category.terms.length > 0)
+  const resultCount = filtered.reduce(
+    (total, category) => total + category.terms.length,
+    0,
+  )
+
+  const resetFilters = () => {
+    setSearch("")
+    setActiveCategory(null)
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-5 pt-5 pb-3">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-4">
-            <h1 className="font-mono text-base font-semibold text-gray-900 tracking-tight">
-              UI State Cheatsheet
-            </h1>
-            <p className="text-xs text-gray-400 mt-0.5">
-              클릭하면 바로 복사 · 피그마 작업할 때 참고용
-            </p>
-          </div>
-
-          {/* Search */}
-          <input
-            aria-label="UI 용어 검색"
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setActiveCategory(null)
-            }}
-            placeholder="검색 (한글 or 영어)"
-            className="w-full sm:w-72 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:border-gray-400 transition-colors mb-3"
-          />
-
-          {/* Category pills */}
-          <div className="flex gap-1.5 flex-wrap">
-            <button
-              onClick={() => {
-                setActiveCategory(null)
-                setSearch("")
-              }}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                !activeCategory && !search
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }`}
-            >
-              전체
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
+    <>
+      <PageHeader
+        title="UI 용어 사전"
+        description="UI 용어를 검색하고 클릭해 영문 이름을 복사하세요."
+      />
+      <Card className="mb-8 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="relative w-full sm:max-w-sm">
+            <Search
+              className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <Input
+              ref={searchInput}
+              type="search"
+              aria-label="UI 용어 검색"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="한글 또는 영어로 검색하세요"
+              className="pl-9 pr-10 [&::-webkit-search-cancel-button]:appearance-none"
+            />
+            {search && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="검색어 지우기"
+                className="absolute right-1 top-1"
                 onClick={() => {
-                  setActiveCategory(cat.id === activeCategory ? null : cat.id)
                   setSearch("")
+                  searchInput.current?.focus()
                 }}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                  activeCategory === cat.id
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                }`}
               >
-                {cat.label}
-              </button>
-            ))}
+                <X aria-hidden="true" />
+              </Button>
+            )}
           </div>
         </div>
-      </div>
-
-      <p role="status" className="px-5 text-sm text-red-600">
-        {error}
-      </p>
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-5 py-6 pb-16">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-gray-300">
-            <p className="text-sm">검색 결과가 없어요</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {filtered.map((cat) => (
-              <div key={cat.id}>
-                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2.5">
-                  {cat.label}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {cat.terms.map((term) => {
-                    const uid = `${cat.id}-${term.en}`
-                    const isCopied = copied === uid
-                    return (
-                      <TermCard
-                        key={uid}
-                        term={term}
-                        copied={isCopied}
-                        onCopy={() => handleCopy(term.en, uid)}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+        <Separator className="my-5" />
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-label="용어 카테고리"
+        >
+          <Button
+            variant={!activeCategory ? "default" : "secondary"}
+            size="sm"
+            aria-pressed={!activeCategory}
+            onClick={() => setActiveCategory(null)}
+          >
+            전체
+          </Button>
+          {categories.map((category) => (
+            <Button
+              key={category.id}
+              variant={activeCategory === category.id ? "default" : "secondary"}
+              size="sm"
+              aria-pressed={activeCategory === category.id}
+              onClick={() =>
+                setActiveCategory(
+                  category.id === activeCategory ? null : category.id,
+                )
+              }
+            >
+              {category.label}
+            </Button>
+          ))}
+        </div>
+      </Card>
+      <div className="mb-5 flex min-h-8 items-center justify-between gap-3">
+        <p
+          role="status"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          {search.trim()
+            ? "검색 결과"
+            : activeCategory
+              ? "카테고리 용어"
+              : "전체 용어"}
+          <span className="font-medium text-foreground">{resultCount}</span>
+        </p>
+        {(search || activeCategory) && (
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
+            <X aria-hidden="true" />
+            필터 초기화
+          </Button>
         )}
       </div>
-    </div>
+      {filtered.length === 0 ? (
+        <Card className="flex flex-col items-center px-5 py-16 text-center">
+          <h2 className="text-base font-semibold">검색 결과가 없어요</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            다른 검색어를 입력하거나 카테고리를 바꿔보세요.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-5"
+            onClick={() => {
+              resetFilters()
+              searchInput.current?.focus()
+            }}
+          >
+            전체 용어 보기
+          </Button>
+        </Card>
+      ) : (
+        <div className="space-y-8">
+          {filtered.map((category) => (
+            <section
+              key={category.id}
+              aria-labelledby={"category-" + category.id}
+            >
+              <div className="mb-3 flex items-center gap-2.5">
+                <h2
+                  id={"category-" + category.id}
+                  className="text-sm font-semibold"
+                >
+                  {category.label}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:grid-cols-3">
+                {category.terms.map((term) => {
+                  const uid = category.id + "-" + term.en
+                  return (
+                    <TermCard
+                      key={uid}
+                      term={term}
+                      copied={copied === uid}
+                      onCopy={() => copy(term.en, uid)}
+                    />
+                  )
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
