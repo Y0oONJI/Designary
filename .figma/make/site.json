@@ -1,0 +1,12 @@
+{
+  "title": "Designary — 디자이너를 위한 작은 도구함",
+  "language": "ko",
+  "description": "4의 배수 간격 계산과 UI 용어 복사로 디자인 작업의 흐름을 이어가세요.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
