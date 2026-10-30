@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Grid2X2,
+  Palette,
   PanelLeftClose,
   PanelLeftOpen,
   Ruler,
@@ -10,7 +11,11 @@ import Button from "@/shared/components/ui/button"
 import { cn } from "@/shared/lib/utils"
 import { tools, type ToolId } from "./tools"
 
-const toolIcons = { glossary: BookOpen, "four-multiple": Ruler }
+const toolIcons = {
+  glossary: BookOpen,
+  "four-multiple": Ruler,
+  "design-system-starter": Palette,
+}
 
 type Props = {
   activeTool: ToolId

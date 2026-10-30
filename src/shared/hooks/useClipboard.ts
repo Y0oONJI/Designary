@@ -17,7 +17,7 @@ export default function useClipboard() {
     [],
   )
 
-  async function copy(text: string, id = text) {
+  async function copy(text: string, id = text, label = text) {
     const current = ++request.current
     clearTimeout(timer.current)
     setCopied(null)
@@ -26,7 +26,7 @@ export default function useClipboard() {
       await copyToClipboard(text)
       if (request.current !== current) return
       setCopied(id)
-      toast.success(`${text} 복사했어요`)
+      toast.success(`${label} 복사했어요`)
       timer.current = setTimeout(() => setCopied(null), 1200)
     } catch {
       if (request.current === current) {
