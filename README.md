@@ -24,7 +24,7 @@ src/
     tools.ts                도구 목록 및 화면 등록 (첫 항목이 시작 화면)
   features/
     four-multiple/          4의 배수 툴
-    glossary/               UI 용어 사전 (components, data, types)
+    glossary/               UI 용어 사전 (components, data, lib, types)
     px-rem/                 px ↔ rem 변환기
     contrast-checker/       컬러 대비 검사기
     design-system-starter/  디자인 시스템 스타터 (components, lib)

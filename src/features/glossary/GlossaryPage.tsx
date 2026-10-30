@@ -7,27 +7,24 @@ import Input from "@/shared/components/ui/input"
 import Separator from "@/shared/components/ui/separator"
 import useClipboard from "@/shared/hooks/useClipboard"
 import TermCard from "./components/TermCard"
-import { categories } from "./data/categories"
+import { categories, groups } from "./data/categories"
+import { filterCategories } from "./lib/filter"
+import type { GroupId } from "./types"
 
 export default function GlossaryPage() {
   const { copied, copy } = useClipboard()
+  const [activeGroup, setActiveGroup] = useState<GroupId | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const searchInput = useRef<HTMLInputElement>(null)
-  const query = search.trim().toLowerCase()
-
-  const filtered = categories
-    .filter((category) => !activeCategory || category.id === activeCategory)
-    .map((category) => ({
-      ...category,
-      terms: category.terms.filter(
-        (term) =>
-          !query ||
-          term.en.toLowerCase().includes(query) ||
-          term.ko.includes(query),
-      ),
-    }))
-    .filter((category) => category.terms.length > 0)
+  const groupCategories = categories.filter(
+    (category) => category.group === activeGroup,
+  )
+  const filtered = filterCategories(categories, {
+    query: search,
+    group: activeGroup,
+    category: activeCategory,
+  })
   const resultCount = filtered.reduce(
     (total, category) => total + category.terms.length,
     0,
@@ -35,6 +32,12 @@ export default function GlossaryPage() {
 
   const resetFilters = () => {
     setSearch("")
+    setActiveGroup(null)
+    setActiveCategory(null)
+  }
+
+  const selectGroup = (group: GroupId | null) => {
+    setActiveGroup(group)
     setActiveCategory(null)
   }
 
@@ -80,32 +83,51 @@ export default function GlossaryPage() {
         <div
           className="flex flex-wrap gap-2"
           role="group"
-          aria-label="용어 카테고리"
+          aria-label="용어 대분류"
         >
           <Button
-            variant={!activeCategory ? "default" : "secondary"}
+            variant={!activeGroup ? "default" : "secondary"}
             size="sm"
-            aria-pressed={!activeCategory}
-            onClick={() => setActiveCategory(null)}
+            aria-pressed={!activeGroup}
+            onClick={() => selectGroup(null)}
           >
             전체
           </Button>
-          {categories.map((category) => (
+          {groups.map((group) => (
             <Button
-              key={category.id}
-              variant={activeCategory === category.id ? "default" : "secondary"}
+              key={group.id}
+              variant={activeGroup === group.id ? "default" : "secondary"}
               size="sm"
-              aria-pressed={activeCategory === category.id}
-              onClick={() =>
-                setActiveCategory(
-                  category.id === activeCategory ? null : category.id,
-                )
-              }
+              aria-pressed={activeGroup === group.id}
+              onClick={() => selectGroup(group.id)}
             >
-              {category.label}
+              {group.label}
             </Button>
           ))}
         </div>
+        {activeGroup && (
+          <div
+            className="mt-3 flex flex-wrap gap-2 border-t pt-3"
+            role="group"
+            aria-label="용어 세부 분류"
+          >
+            {groupCategories.map((category) => (
+              <Button
+                key={category.id}
+                variant={activeCategory === category.id ? "default" : "outline"}
+                size="sm"
+                aria-pressed={activeCategory === category.id}
+                onClick={() =>
+                  setActiveCategory(
+                    category.id === activeCategory ? null : category.id,
+                  )
+                }
+              >
+                {category.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </Card>
       <div className="mb-5 flex min-h-8 items-center justify-between gap-3">
         <p
@@ -114,12 +136,12 @@ export default function GlossaryPage() {
         >
           {search.trim()
             ? "검색 결과"
-            : activeCategory
-              ? "카테고리 용어"
+            : activeCategory || activeGroup
+              ? "분류별 용어"
               : "전체 용어"}
           <span className="font-medium text-foreground">{resultCount}</span>
         </p>
-        {(search || activeCategory) && (
+        {(search || activeGroup || activeCategory) && (
           <Button variant="ghost" size="sm" onClick={resetFilters}>
             <X aria-hidden="true" />
             필터 초기화
@@ -130,7 +152,7 @@ export default function GlossaryPage() {
         <Card className="flex flex-col items-center px-5 py-16 text-center">
           <h2 className="text-base font-semibold">검색 결과가 없어요</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            다른 검색어를 입력하거나 카테고리를 바꿔보세요.
+            다른 검색어를 입력하거나 분류를 바꿔보세요.
           </p>
           <Button
             variant="outline"
@@ -155,6 +177,9 @@ export default function GlossaryPage() {
                   id={"category-" + category.id}
                   className="text-sm font-semibold"
                 >
+                  <span className="mr-2 font-normal text-muted-foreground">
+                    {groups.find((group) => group.id === category.group)?.label}
+                  </span>
                   {category.label}
                 </h2>
               </div>
