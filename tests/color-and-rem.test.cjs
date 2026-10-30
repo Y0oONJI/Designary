@@ -34,6 +34,10 @@ test('suggested foreground reaches the target ratio', () => {
   assert.ok(hex);
   assert.ok(color.contrastRatio(hex, '#ffffff') >= 4.5);
   assert.equal(color.suggestForeground('#ffffff', '#ffffff', 22), null);
+  // 중간 밝기 배경에서는 어두운 쪽으로만 통과 색이 있다
+  const dark = color.suggestForeground('#999999', '#808080', 4.5);
+  assert.ok(dark);
+  assert.ok(color.contrastRatio(dark, '#808080') >= 4.5);
 });
 
 test('px and rem convert with a custom base', () => {

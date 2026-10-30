@@ -20,7 +20,8 @@ export default function ColorField({
   const [lastValue, setLastValue] = useState(value)
   if (value !== lastValue) {
     setLastValue(value)
-    setText(value)
+    // 사용자가 입력 중인 값이 이미 같은 색이면 글자를 바꾸지 않는다
+    if (normalizeHex(text) !== value) setText(value)
   }
   const invalid = normalizeHex(text) === null
 

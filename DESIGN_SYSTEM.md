@@ -1,7 +1,7 @@
 # Designary UI
 
 shadcn/ui의 New York 구성과 Radix UI를 바탕으로 만든 공통 UI입니다.
-두 화면은 `src/shared/components/ui`의 컴포넌트와 `src/index.css`의 의미 기반 토큰을 공유합니다.
+모든 화면은 `src/shared/components/ui`의 컴포넌트와 `src/index.css`의 의미 기반 토큰을 공유합니다.
 
 ## 기본 규칙
 
@@ -26,6 +26,9 @@ shadcn/ui의 New York 구성과 Radix UI를 바탕으로 만든 공통 UI입니�
 | Tabs / TabsList / TabsTrigger / TabsContent | Radix 키보드 탐색 및 접근성 연결을 갖춘 모드 전환 |
 | Toaster | Sonner 알림. 복사 성공·실패는 공통 `useClipboard`에서 처리 |
 | PageHeader | 페이지 제목과 한 줄 사용 설명의 공통 구조 |
+| CollapsibleCard | 접고 펼 수 있는 카드. `aria-expanded`로 상태를 알립니다 |
+| ColorField | 컬러 피커와 HEX 입력. 6자리일 때 반영하고 3자리 축약형은 입력을 마칠 때 반영합니다 |
+| InfoTip | 클릭으로 열리는 설명 말풍선. Esc와 바깥 클릭으로 닫힙니다 |
 
 `components.json`은 shadcn CLI가 공유 경로에 컴포넌트를 추가하도록 설정되어 있습니다.
 저장소 규칙에 따라 컴포넌트는 default export를 사용하고, 탭 하위 컴포넌트는 파일로 분리했습니다.

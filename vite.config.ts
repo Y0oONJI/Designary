@@ -14,7 +14,7 @@ import siteConfiguration from "./.figma/make/site.json"
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // .figma/make/deploy-preview passes `--mode development` for cached-preview builds.
+  // 개발 모드 빌드에서만 소스맵을 인라인으로 포함한다.
   const emitSourcemaps = mode === "development"
 
   return {

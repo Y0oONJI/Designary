@@ -6,7 +6,11 @@ import Button from "@/shared/components/ui/button"
 import Card from "@/shared/components/ui/card"
 import Separator from "@/shared/components/ui/separator"
 import useClipboard from "@/shared/hooks/useClipboard"
-import { contrastRatio, suggestForeground } from "@/shared/lib/color"
+import {
+  contrastRatio,
+  gradeContrast,
+  suggestForeground,
+} from "@/shared/lib/color"
 import { cn } from "@/shared/lib/utils"
 
 const groups = [
@@ -33,11 +37,11 @@ const groups = [
   },
 ]
 
-function verdict(ratio: number) {
-  if (ratio >= 7) return { text: "AAA 통과", pass: true }
-  if (ratio >= 4.5) return { text: "AA 통과", pass: true }
-  if (ratio >= 3) return { text: "큰 텍스트만 통과", pass: false }
-  return { text: "기준 미달", pass: false }
+const verdicts = {
+  AAA: { text: "AAA 통과", pass: true },
+  AA: { text: "AA 통과", pass: true },
+  "AA Large": { text: "큰 텍스트만 통과", pass: false },
+  Fail: { text: "기준 미달", pass: false },
 }
 
 // 반올림으로 4.499가 4.5로 보이지 않도록 소수 둘째 자리에서 내린다
@@ -51,7 +55,7 @@ export default function ContrastChecker() {
 
   const ratio = contrastRatio(foreground, background)
   const ratioText = formatRatio(ratio) + ":1"
-  const result = verdict(ratio)
+  const result = verdicts[gradeContrast(ratio)]
   const suggestion =
     ratio < 4.5 ? suggestForeground(foreground, background, 4.5) : null
 

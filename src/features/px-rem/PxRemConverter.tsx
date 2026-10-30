@@ -72,8 +72,8 @@ export default function PxRemConverter() {
                 <div className="relative w-32">
                   <Input
                     id="rem-base"
-                    type="number"
-                    min={1}
+                    type="text"
+                    inputMode="decimal"
                     value={baseInput}
                     aria-invalid={base === null}
                     aria-describedby="rem-base-hint"
@@ -102,8 +102,8 @@ export default function PxRemConverter() {
                 <Label htmlFor="px-value">px</Label>
                 <Input
                   id="px-value"
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={px}
                   aria-invalid={source === "px" && valueInvalid}
                   onChange={(event) => edit("px", event.target.value)}
@@ -118,8 +118,8 @@ export default function PxRemConverter() {
                 <Label htmlFor="rem-value">rem</Label>
                 <Input
                   id="rem-value"
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={rem}
                   aria-invalid={source === "rem" && valueInvalid}
                   onChange={(event) => edit("rem", event.target.value)}

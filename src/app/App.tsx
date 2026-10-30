@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { Menu } from "lucide-react"
 import ToastProvider from "@/shared/components/ToastProvider"
 import Button from "@/shared/components/ui/button"
@@ -8,11 +8,28 @@ import { tools, type ToolId } from "./tools"
 
 export default function App() {
   const [activeTool, setActiveTool] = useState<ToolId>(tools[0].id)
+  // 한 번 연 도구만 불러오고, 이후에는 입력 상태를 유지하려고 숨기기만 한다
+  const [visited, setVisited] = useState<ReadonlySet<ToolId>>(
+    () => new Set([tools[0].id]),
+  )
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const mobileMenu = useRef<HTMLDialogElement>(null)
 
+  // 데스크톱 폭으로 넓어지면 모바일 메뉴를 닫는다
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)")
+    const closeOnDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) mobileMenu.current?.close()
+    }
+    query.addEventListener("change", closeOnDesktop)
+    return () => query.removeEventListener("change", closeOnDesktop)
+  }, [])
+
   const selectTool = (id: ToolId) => {
     setActiveTool(id)
+    setVisited((current) =>
+      current.has(id) ? current : new Set(current).add(id),
+    )
     mobileMenu.current?.close()
     window.scrollTo({ top: 0, behavior: "instant" })
   }
@@ -35,6 +52,10 @@ export default function App() {
         />
         <dialog
           ref={mobileMenu}
+          onClick={(event) => {
+            if (event.target === event.currentTarget)
+              mobileMenu.current?.close()
+          }}
           aria-label="디자인 도구 메뉴"
           className="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-60 max-w-[calc(100vw-2rem)] border-0 bg-background p-0 text-foreground shadow-xl backdrop:bg-foreground/30"
         >
@@ -64,11 +85,24 @@ export default function App() {
             tabIndex={-1}
             className="@container mx-auto w-full max-w-6xl flex-1 px-5 py-9 outline-none sm:px-8 sm:py-12"
           >
-            {tools.map(({ id, component: Tool }) => (
-              <div key={id} id={"tool-" + id} hidden={activeTool !== id}>
-                <Tool />
-              </div>
-            ))}
+            {tools.map(({ id, component: Tool }) =>
+              visited.has(id) ? (
+                <div key={id} id={"tool-" + id} hidden={activeTool !== id}>
+                  <Suspense
+                    fallback={
+                      <p
+                        role="status"
+                        className="text-sm text-muted-foreground"
+                      >
+                        불러오는 중…
+                      </p>
+                    }
+                  >
+                    <Tool />
+                  </Suspense>
+                </div>
+              ) : null,
+            )}
           </main>
           <footer className="mx-auto w-full max-w-6xl px-5 pb-6 sm:px-8">
             <Separator />

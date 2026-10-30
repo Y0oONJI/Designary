@@ -122,12 +122,14 @@ export function suggestForeground(
   target: number,
 ): string | null {
   const { l, c, h } = hexToOklch(foreground)
-  const direction = luminance(background) > 0.5 ? -1 : 1
+  // 중간 밝기 배경에서는 어두운 쪽과 밝은 쪽 중 어느 쪽이 통과할지 알 수 없어 양쪽을 모두 본다
   for (let i = 1; i <= 100; i++) {
-    const next = l + direction * i * 0.01
-    if (next < 0 || next > 1) break
-    const hex = oklchToHex({ l: next, c, h })
-    if (contrastRatio(hex, background) >= target) return hex
+    for (const direction of [-1, 1]) {
+      const next = l + direction * i * 0.01
+      if (next < 0 || next > 1) continue
+      const hex = oklchToHex({ l: next, c, h })
+      if (contrastRatio(hex, background) >= target) return hex
+    }
   }
   return null
 }
