@@ -1,4 +1,4 @@
-import { hexToOklch, oklchToHex, type Oklch } from "./color"
+import { hexToOklch, oklchToHex, type Oklch } from "@/shared/lib/color"
 
 export const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const
 export type Step = typeof steps[number]

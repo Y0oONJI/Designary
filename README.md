@@ -63,3 +63,14 @@ pnpm format
 Figma Make 안에서는 실행 중인 개발 서버를 사용합니다.
 `vite.config.ts`와 `config/figma-plugins.ts`는 Figma 미리보기 및 배포 연동을
 유지합니다. 사이트 메타데이터는 `.figma/make/site.json`에서 설정합니다.
+
+## 배포
+
+`main`에 푸시하면 GitHub Actions(`.github/workflows/deploy.yml`)가 타입체크, 테스트,
+빌드를 거쳐 GitHub Pages(`https://y0oonji.github.io/Designary/`)에 올립니다.
+수동 배포는 Actions 탭에서 Deploy 워크플로의 Run workflow로 실행합니다.
+
+- 저장소 Settings → Pages → Source는 `GitHub Actions`로 설정해야 합니다.
+- 사이트가 `/Designary/` 아래에서 열리므로, 워크플로가 빌드할 때
+  `FIGMA_PUBLIC_URL=/Designary`를 넣어 파일 경로의 기준을 맞춥니다.
+- 이전의 `gh-pages` 브랜치와 `.figma/make/deploy`는 사용하지 않습니다.

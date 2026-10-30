@@ -51,7 +51,7 @@ export default function ThemePreview({
           <span
             style={{
               backgroundColor: color("accent"),
-              color: color("primary"),
+              color: color("accent-foreground"),
             }}
             className="rounded-md px-3 py-1.5 text-sm font-medium"
           >

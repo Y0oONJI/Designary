@@ -4,7 +4,7 @@ import CollapsibleCard from "@/shared/components/CollapsibleCard"
 import Button from "@/shared/components/ui/button"
 import useClipboard from "@/shared/hooks/useClipboard"
 import { cn } from "@/shared/lib/utils"
-import { contrastRatio, gradeContrast, readableOn } from "../lib/color"
+import { contrastRatio, gradeContrast, readableOn } from "@/shared/lib/color"
 import { scaleNames, steps, type Palette } from "../lib/palette"
 import {
   scaleName,
@@ -23,6 +23,7 @@ type Props = {
 // 팔레트 견본은 사용자가 만든 색이라 인라인 스타일로 칠한다
 export default function ColorPanel({ palette, semantic, naming }: Props) {
   const { copied, copy } = useClipboard()
+  const pairs = new Map(semantic.map((token) => [token.names.tailwind, token]))
   const groups = [...new Set(semantic.map((token) => token.group))]
   const [open, setOpen] = useState({
     primitive: true,
@@ -123,6 +124,11 @@ export default function ColorPanel({ palette, semantic, naming }: Props) {
                       </code>
                       {(["light", "dark"] as Mode[]).map((mode) => {
                         const entry = token[mode]
+                        const pairHex = pairs.get(token.pair ?? "")?.[mode].hex
+                        const ratio = pairHex
+                          ? contrastRatio(entry.hex, pairHex)
+                          : null
+                        const grade = ratio ? gradeContrast(ratio) : null
                         const label = entry.ref
                           ? `${scaleName(entry.ref.scale, naming)}-${entry.ref.step}`
                           : entry.hex
@@ -132,7 +138,9 @@ export default function ColorPanel({ palette, semantic, naming }: Props) {
                             type="button"
                             aria-label={`${token.names[naming]} ${
                               mode === "light" ? "라이트" : "다크"
-                            } ${entry.hex} 복사`}
+                            } ${entry.hex}${
+                              grade ? ` 대비 ${grade}` : ""
+                            } 복사`}
                             onClick={() =>
                               copy(
                                 entry.hex,
@@ -141,7 +149,7 @@ export default function ColorPanel({ palette, semantic, naming }: Props) {
                               )
                             }
                             className={cn(
-                              "flex w-44 cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-left outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/30",
+                              "flex w-64 cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-left outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/30",
                             )}
                           >
                             <span
@@ -159,6 +167,18 @@ export default function ColorPanel({ palette, semantic, naming }: Props) {
                             <span className="tabular-nums text-muted-foreground">
                               {mode === "light" ? "라이트" : "다크"} · {label}
                             </span>
+                            {ratio !== null && grade && (
+                              <span
+                                className={cn(
+                                  "ml-auto tabular-nums font-medium",
+                                  grade === "Fail"
+                                    ? "text-destructive"
+                                    : "text-foreground",
+                                )}
+                              >
+                                {grade} {ratio.toFixed(1)}
+                              </span>
+                            )}
                           </button>
                         )
                       })}

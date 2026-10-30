@@ -1,4 +1,4 @@
-import { readableOn } from "./color"
+import { contrastRatio, readableOn } from "@/shared/lib/color"
 import type { Palette, ScaleName, Step } from "./palette"
 import type { TypeStep } from "./typeScale"
 
@@ -14,7 +14,7 @@ type NamingOption = {
 export const namingOptions: NamingOption[] = [
   {
     value: "tailwind",
-    label: "Tailwind식",
+    label: "기본형",
     sample: "primary-500 · background",
   },
   { value: "role", label: "역할식", sample: "brand-500 · surface-page" },
@@ -52,12 +52,29 @@ type Ref = {
   step: Step
 }
 
+// 짝이 되는 배경 위에서 AA(4.5:1)를 넘는 첫 단계를 고른다
+type Auto = {
+  scale: ScaleName
+  candidates: Step[]
+}
+
+type Value = Ref | Auto | "on-primary" | "white"
+
 type SemanticDef = {
   names: Record<Naming, string>
   group: string
-  light: Ref | "on-primary" | "white"
-  dark: Ref | "on-primary" | "white"
+  pair?: string
+  light: Value
+  dark: Value
 }
+
+const auto = (scale: ScaleName, ...candidates: Step[]): Auto => ({
+  scale,
+  candidates,
+})
+
+const isAuto = (value: Value): value is Auto =>
+  typeof value === "object" && "candidates" in value
 
 const ref = (scale: ScaleName, step: Step): Ref => ({ scale, step })
 
@@ -117,8 +134,19 @@ const baseDefs: SemanticDef[] = [
     dark: ref("primary", 900),
   },
   {
+    names: {
+      tailwind: "accent-foreground",
+      role: "action-primary-subtle-content",
+    },
+    group: "프라이머리",
+    pair: "accent",
+    light: auto("primary", 600, 700, 800, 900),
+    dark: auto("primary", 400, 300, 200, 100),
+  },
+  {
     names: { tailwind: "primary-foreground", role: "content-on-action" },
     group: "프라이머리",
+    pair: "primary",
     light: "on-primary",
     dark: "on-primary",
   },
@@ -151,8 +179,9 @@ const statusDefs: SemanticDef[] = statuses.flatMap((status) => {
     {
       names: { tailwind: `${tw}-text`, role: `${role}-content` },
       group,
-      light: ref(status, 700),
-      dark: ref(status, 300),
+      pair: `${tw}-bg`,
+      light: auto(status, 700, 800, 900),
+      dark: auto(status, 300, 200, 100),
     },
   ]
 })
@@ -165,12 +194,16 @@ type ResolvedColor = {
 export type SemanticToken = {
   names: Record<Naming, string>
   group: string
+  pair?: string
   light: ResolvedColor
   dark: ResolvedColor
 }
 
 export function buildSemanticTokens(palette: Palette): SemanticToken[] {
-  const resolve = (value: SemanticDef["light"], mode: Mode) => {
+  const defs = [...baseDefs, ...statusDefs]
+  const pending: ResolvedColor = { hex: "", ref: null }
+
+  const resolve = (value: Exclude<Value, Auto>, mode: Mode): ResolvedColor => {
     if (value === "white") return { hex: "#ffffff", ref: null }
     if (value === "on-primary") {
       const primary = palette.primary[mode === "light" ? 500 : 400]
@@ -178,10 +211,39 @@ export function buildSemanticTokens(palette: Palette): SemanticToken[] {
     }
     return { hex: palette[value.scale][value.step], ref: value }
   }
-  return [...baseDefs, ...statusDefs].map((def) => ({
+
+  const pick = (value: Auto, background: string): ResolvedColor => {
+    const options = value.candidates.map((step) => ({
+      hex: palette[value.scale][step],
+      ref: { scale: value.scale, step },
+    }))
+    return (
+      options.find(({ hex }) => contrastRatio(hex, background) >= 4.5) ??
+      options.reduce((best, option) =>
+        contrastRatio(option.hex, background) >
+        contrastRatio(best.hex, background)
+          ? option
+          : best,
+      )
+    )
+  }
+
+  const tokens: SemanticToken[] = defs.map((def) => ({
     names: def.names,
     group: def.group,
-    light: resolve(def.light, "light"),
-    dark: resolve(def.dark, "dark"),
+    pair: def.pair,
+    light: isAuto(def.light) ? pending : resolve(def.light, "light"),
+    dark: isAuto(def.dark) ? pending : resolve(def.dark, "dark"),
   }))
+  const byName = new Map(tokens.map((token) => [token.names.tailwind, token]))
+
+  defs.forEach((def, index) => {
+    const pair = def.pair && byName.get(def.pair)
+    for (const mode of ["light", "dark"] as const) {
+      const value = def[mode]
+      if (isAuto(value) && pair)
+        tokens[index][mode] = pick(value, pair[mode].hex)
+    }
+  })
+  return tokens
 }

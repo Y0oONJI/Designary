@@ -1,9 +1,11 @@
 import {
+  ArrowLeftRight,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Contrast,
   Grid2X2,
   Palette,
-  PanelLeftClose,
-  PanelLeftOpen,
   Ruler,
   X,
 } from "lucide-react"
@@ -14,6 +16,8 @@ import { tools, type ToolId } from "./tools"
 const toolIcons = {
   glossary: BookOpen,
   "four-multiple": Ruler,
+  "px-rem": ArrowLeftRight,
+  "contrast-checker": Contrast,
   "design-system-starter": Palette,
 }
 
@@ -39,7 +43,7 @@ export default function AppSidebar({
     : collapsed
       ? "사이드바 펼치기"
       : "사이드바 접기"
-  const ToggleIcon = mobile ? X : collapsed ? PanelLeftOpen : PanelLeftClose
+  const ToggleIcon = mobile ? X : collapsed ? ChevronRight : ChevronLeft
 
   return (
     <aside
@@ -53,7 +57,7 @@ export default function AppSidebar({
       <div
         className={cn(
           "flex h-16 shrink-0 items-center border-b",
-          collapsed ? "justify-center px-2" : "gap-2 pl-4 pr-14",
+          collapsed ? "justify-center px-2" : mobile ? "gap-2 pl-4 pr-14" : "gap-2 px-4",
         )}
       >
         <div
@@ -104,24 +108,31 @@ export default function AppSidebar({
           )
         })}
       </nav>
-      <div
-        className={
-          collapsed
-            ? "mt-auto flex justify-center border-t p-2"
-            : "absolute right-3 top-4"
-        }
-      >
+      {mobile ? (
+        <div className="absolute right-3 top-4">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={toggleLabel}
+            title={toggleLabel}
+            onClick={onToggle}
+          >
+            <ToggleIcon aria-hidden="true" />
+          </Button>
+        </div>
+      ) : (
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon-sm"
           aria-label={toggleLabel}
-          aria-expanded={mobile ? undefined : !collapsed}
+          aria-expanded={!collapsed}
           title={toggleLabel}
           onClick={onToggle}
+          className="absolute -right-3 top-16 z-10 size-6 -translate-y-1/2 rounded-full text-muted-foreground [&_svg]:size-3.5"
         >
           <ToggleIcon aria-hidden="true" />
         </Button>
-      </div>
+      )}
     </aside>
   )
 }

@@ -7,7 +7,7 @@ import AppSidebar from "./AppSidebar"
 import { tools, type ToolId } from "./tools"
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState<ToolId>("four-multiple")
+  const [activeTool, setActiveTool] = useState<ToolId>(tools[0].id)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const mobileMenu = useRef<HTMLDialogElement>(null)
 

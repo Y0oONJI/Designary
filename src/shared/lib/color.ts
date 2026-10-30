@@ -114,3 +114,20 @@ export function readableOn(background: string) {
     ? "#ffffff"
     : "#000000"
 }
+
+// 글자색의 색조와 채도는 두고 명도만 움직여 목표 대비를 넘는 가장 가까운 색을 찾는다
+export function suggestForeground(
+  foreground: string,
+  background: string,
+  target: number,
+): string | null {
+  const { l, c, h } = hexToOklch(foreground)
+  const direction = luminance(background) > 0.5 ? -1 : 1
+  for (let i = 1; i <= 100; i++) {
+    const next = l + direction * i * 0.01
+    if (next < 0 || next > 1) break
+    const hex = oklchToHex({ l: next, c, h })
+    if (contrastRatio(hex, background) >= target) return hex
+  }
+  return null
+}
