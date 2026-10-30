@@ -57,7 +57,11 @@ export default function AppSidebar({
       <div
         className={cn(
           "flex h-16 shrink-0 items-center border-b",
-          collapsed ? "justify-center px-2" : mobile ? "gap-2 pl-4 pr-14" : "gap-2 px-4",
+          collapsed
+            ? "justify-center px-2"
+            : mobile
+              ? "gap-2 pl-4 pr-14"
+              : "gap-2 px-4",
         )}
       >
         <div
